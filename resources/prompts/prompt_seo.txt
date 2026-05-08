@@ -1,0 +1,90 @@
+TASK:
+Generate structured SEO content for a tool page based on the provided TOOL DATA.
+
+GOAL:
+Create clear, useful, and well-structured content that improves search visibility and helps users understand and use the tool.
+
+IMPORTANT:
+
+- The page already contains an H1 — DO NOT generate any <h1>
+- Do NOT repeat the title as a heading
+- Do NOT include UI or interactive elements
+- Focus ONLY on SEO content
+
+STRUCTURE REQUIREMENTS:
+
+- Wrap ALL SEO content inside:
+  <section class="seo-section">
+
+- Inside this section:
+  - Use semantic HTML (h2, h3, p, ul, ol)
+  - Organize content into logical sections
+  - Ensure clean and readable structure
+
+CONTENT REQUIREMENTS:
+
+Include the following sections (adapt if necessary based on the tool):
+
+1. Introduction
+- Explain what the tool does
+- Keep it concise and clear
+
+2. How to Use
+- Step-by-step instructions
+- Easy to follow
+
+3. Explanation / Logic
+- Explain how the tool works (if applicable)
+- Include formulas or logic if relevant
+
+4. Example
+- Provide a simple, realistic example
+
+5. Interpretation of Results
+- Help users understand what the output means
+
+6. Tips / Common Mistakes (optional but recommended)
+- Practical advice
+- Real-world usefulness
+
+FAQ REQUIREMENTS (MANDATORY):
+
+- Generate a separate FAQ block
+
+- Wrap FAQ inside:
+  <section class="faq-section">
+
+- Include multiple meaningful questions and answers
+- Each question must be relevant to the tool
+- Answers must be clear and helpful
+
+- Structure:
+  - question as <h3>
+  - answer as <p>
+
+WRITING STYLE:
+
+- Clear and concise
+- Human and natural tone
+- No fluff or filler
+- Avoid repetition
+- Focus on usefulness
+
+SEO PRINCIPLES:
+
+- Use headings properly (h2, h3)
+- Ensure content is easy to scan
+- Use natural keyword placement (no keyword stuffing)
+- Keep paragraphs readable
+
+CRITICAL:
+
+- Do NOT include JavaScript
+- Do NOT include CSS unless absolutely necessary
+- Do NOT include any explanations outside of HTML
+- Output must be production-ready
+
+OUTPUT:
+
+Return ONLY HTML.
+No explanations.

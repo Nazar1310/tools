@@ -1,0 +1,56 @@
+.seo-section {
+    margin: 3rem auto;
+}
+
+.seo-section p,
+.seo-section ul,
+.seo-section ol,
+.seo-section div {
+    margin-bottom: 1rem;
+}
+
+.seo-section ul,
+.seo-section ol {
+    margin-left: 1.2rem;
+}
+
+.seo-section h2 {
+    font-size: 1.4rem;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.seo-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.seo-section p {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.faq-section {
+    margin: 3rem auto;
+}
+
+.faq-section div {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.faq-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.faq-section p {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    line-height: 1.6;
+}

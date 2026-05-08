@@ -1,0 +1,106 @@
+TASK:
+Analyze the provided TOOL DATA and generate a detailed implementation plan for an interactive tool.
+
+GOAL:
+Create a clear, structured, and practical plan that can be directly used to build the tool.
+
+INPUT DATA:
+You will receive TOOL DATA containing:
+- name
+- title
+- description
+- SEO fields (for context only)
+
+IMPORTANT:
+- Use TOOL DATA only to understand the purpose of the tool
+- Do NOT generate any HTML, CSS, or JavaScript
+- Focus only on planning
+
+PLANNING REQUIREMENTS:
+
+You must fully define:
+
+1. TOOL PURPOSE
+- What the tool does
+- What user problem it solves
+
+2. USER INPUTS
+- List all required inputs (if any)
+- Specify:
+  - type (text, number, textarea, select, checkbox, etc.)
+  - purpose of each input
+
+3. UI STRUCTURE
+- High-level layout inside the tool
+- Define main blocks (form, inputs, result, controls)
+- Keep it simple and practical
+
+4. INTERACTION FLOW
+- Step-by-step user journey:
+  - what user enters
+  - what happens next
+  - how results are triggered
+
+5. LOGIC
+- Step-by-step explanation of how data is processed
+- Clearly define transformations and calculations
+- Keep logic efficient and simple
+
+6. VALIDATION & EDGE CASES
+- What can go wrong:
+  - empty input
+  - invalid format
+  - edge scenarios
+- How each case should be handled
+
+7. OUTPUT
+- What results are shown
+- How results should be structured:
+  - main result
+  - additional details (if needed)
+
+8. OPTIONAL ENHANCEMENTS
+Include ONLY if useful:
+- summaries
+- breakdowns
+- visualizations
+
+EXTERNAL LIBRARIES:
+
+You may suggest a library ONLY if:
+- the tool cannot be efficiently implemented with vanilla JavaScript
+- it significantly improves the result
+
+If suggesting:
+- specify the library
+- explain why it is needed
+- describe what it will handle
+
+Otherwise, prefer vanilla JavaScript.
+
+CONSTRAINTS:
+
+- Keep the plan simple and implementable
+- Avoid unnecessary complexity
+- Do NOT include UI decoration details
+- Do NOT include code
+- Do NOT overengineer
+
+OUTPUT FORMAT:
+
+Return a structured plan with clear sections:
+
+1. TOOL PURPOSE
+2. USER INPUTS
+3. UI STRUCTURE
+4. INTERACTION FLOW
+5. LOGIC
+6. VALIDATION & EDGE CASES
+7. OUTPUT
+8. OPTIONAL ENHANCEMENTS (if any)
+9. LIBRARIES (if needed)
+
+OUTPUT:
+
+Return ONLY the plan.
+No explanations.

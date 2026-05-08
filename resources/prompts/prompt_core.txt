@@ -1,0 +1,133 @@
+TASK:
+Generate a fully functional interactive tool UI based on the provided TOOL DATA and IMPLEMENTATION PLAN.
+
+GOAL:
+Create a useful, user-friendly, and production-ready tool that works correctly and provides real value.
+
+INPUT DATA:
+You will receive:
+- TOOL DATA (name, title, description, SEO fields for context only)
+- IMPLEMENTATION PLAN (structure, inputs, logic, interaction flow)
+
+IMPORTANT:
+
+- DO NOT render name, title, or description (they already exist on the page)
+- Use TOOL DATA only to understand the purpose of the tool
+- STRICTLY follow the IMPLEMENTATION PLAN — it defines what to build
+- The result block must always be placed under the tool
+
+LAYOUT REQUIREMENTS:
+
+- Wrap everything inside:
+  <section class="tool-section">
+
+- Do NOT output anything outside this section
+
+- Inside:
+  - Keep layout clean, simple, and centered
+  - Use existing CSS classes (tool-card, tool-form, tool-result, etc.)
+  - Maintain consistent structure across tools
+
+FUNCTIONAL REQUIREMENTS:
+
+- Implement the tool exactly according to the IMPLEMENTATION PLAN
+- Use:
+  - HTML
+  - minimal CSS (only if absolutely necessary)
+  - JavaScript (vanilla by default)
+
+- The tool must:
+  - correctly process all inputs
+  - produce accurate results
+  - work immediately after rendering
+
+INTERACTION:
+
+- Use appropriate event listeners (submit, click, input, etc.)
+- Prevent page reloads where needed
+- Avoid excessive automatic recalculations
+- Prefer clear user-triggered actions unless real-time feedback is required
+
+LOGIC IMPLEMENTATION:
+
+- Follow the IMPLEMENTATION PLAN step-by-step
+- Keep logic simple, efficient, and readable
+- Avoid unnecessary loops or overengineering
+- Ensure all inputs are properly connected to logic
+
+VALIDATION:
+
+- Handle:
+  - empty inputs
+  - invalid values
+  - edge cases
+
+- Show clear and user-friendly error messages
+
+RESULT OUTPUT:
+
+- Place result block below the tool
+- Structure output clearly:
+  - main result first
+  - supporting details after
+
+- Do NOT output raw values without explanation
+
+UX & DESIGN:
+
+- Keep UI minimal and practical
+- Do NOT overdesign or add unnecessary elements
+- Strictly follow provided CSS structure
+- Reuse existing classes whenever possible
+
+NO INLINE STYLES:
+
+- Do NOT use inline styles
+- Use existing CSS classes
+- Only add minimal inline CSS if absolutely unavoidable
+
+OPTIONAL ENHANCEMENTS:
+
+You may add:
+- result breakdowns
+- summaries
+- simple visualizations
+
+ONLY if they provide clear functional value
+
+EXTERNAL LIBRARIES (STRICT USAGE):
+
+- Default: vanilla JavaScript
+
+You MAY use a library ONLY if:
+- it is required for correct functionality
+- it significantly improves usability or output quality
+
+RULES:
+- use lightweight and trusted libraries only
+- CDN usage only
+- maximum one library
+- no frameworks (React, Vue, Angular)
+
+If used:
+- integrate cleanly
+- keep usage minimal
+
+If the same result can be achieved with simple JavaScript — do NOT use a library
+
+SELF-VALIDATION (CRITICAL):
+
+Before producing output, internally verify:
+
+- implementation follows the plan
+- all inputs are correctly handled
+- logic produces correct results
+- no runtime errors will occur
+- UI structure is consistent
+
+Do NOT output this validation.
+
+OUTPUT:
+
+Return ONLY clean HTML with embedded JavaScript (and minimal CSS if needed).
+No explanations.
