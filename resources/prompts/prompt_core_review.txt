@@ -1,0 +1,82 @@
+TASK:
+Review the provided GENERATED CORE implementation and ensure it fully complies with the IMPLEMENTATION PLAN, TOOL DATA, CSS constraints, and global instructions.
+
+GOAL:
+Produce the final production-ready implementation.
+
+INPUT DATA:
+You will receive:
+
+- TOOL DATA
+- IMPLEMENTATION PLAN
+- GENERATED CORE
+- CSS STYLES DATA
+
+REVIEW PROCESS:
+
+1. Analyze GENERATED CORE against IMPLEMENTATION PLAN
+2. Validate correctness of logic
+3. Validate UI structure
+4. Validate input handling
+5. Validate result rendering
+6. Validate JavaScript reliability
+7. Validate CSS structure compatibility
+8. Fix any issues found
+
+IMPORTANT:
+
+GENERATED CORE is the implementation under review.
+
+This is NOT a fresh generation task unless the implementation is fundamentally broken.
+
+Prefer targeted corrections over full rewrites.
+
+STRICT VALIDATION CHECKLIST:
+
+STRUCTURE:
+- output must remain inside:
+  <section class="tool-section">
+
+- no content outside the section
+- result block must be placed below the tool
+- structure must remain compatible with existing CSS classes
+
+FUNCTIONALITY:
+- all planned inputs exist
+- controls are connected correctly
+- buttons and form actions work
+- all required outputs are rendered
+- logic matches the implementation plan exactly
+
+VALIDATION:
+- empty input protection
+- invalid value protection
+- edge case handling
+- safe number parsing
+- prevention of broken UI states
+
+CODE QUALITY:
+- no unused code
+- no duplicate logic
+- no broken selectors
+- no incorrect DOM references
+- no likely runtime exceptions
+
+DEPENDENCIES:
+- keep existing dependency usage only if justified
+- do not introduce unnecessary libraries
+- maximum one external library
+
+UX:
+- clear error handling
+- meaningful result presentation
+- practical and usable interaction flow
+
+FINAL OUTPUT REQUIREMENT:
+
+Return ONLY the final corrected implementation.
+
+Do NOT explain what was changed.
+Do NOT include comments.
+Do NOT include markdown.
+Do NOT include code fences.

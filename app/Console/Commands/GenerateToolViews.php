@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\Http;
 class GenerateToolViews extends Command
 {
     protected $signature = 'tools:generate {slug}';
-    protected $description = 'Generate core.blade.php and seo.blade.php using GPT';
+    protected $description = 'Generate tool views using multi-agent GPT pipeline';
+
+    private array $prompts = [];
+    private string $instructions = '';
 
     /**
      * @throws ConnectionException
@@ -27,133 +30,200 @@ class GenerateToolViews extends Command
         }
 
         $toolData = require $indexPath;
+        $context = json_encode($toolData, JSON_PRETTY_PRINT);
 
-        // --- LOAD PROMPTS ---
-        $promptPlan = file_get_contents(resource_path('prompts/prompt_core_plan.txt'));
-        $promptPlanSystem = file_get_contents(resource_path('prompts/prompt_core_plan_system.txt'));
+        $this->loadPrompts();
 
-        $promptCore = file_get_contents(resource_path('prompts/prompt_core.txt'));
-        $promptCoreSystem = file_get_contents(resource_path('prompts/prompt_core_system.txt'));
-
-        $promptSeo = file_get_contents(resource_path('prompts/prompt_seo.txt'));
-        $promptSeoSystem = file_get_contents(resource_path('prompts/prompt_seo_system.txt'));
-
-        $instructions = file_get_contents(resource_path('prompts/instructions.txt'));
-
-        // --- LOAD CSS ---
         $toolCss = file_get_contents(public_path('css/tool.css'));
         $seoCss = file_get_contents(public_path('css/seo.css'));
 
-        // --- CONTEXT ---
-        $context = json_encode($toolData, JSON_PRETTY_PRINT);
+        $plan = $this->generatePlan($context);
 
-        $this->info('Generating plan...');
-
-        $planResponse = $this->askGPT(
-            $promptPlan,
-            $promptPlanSystem,
-            $context,
-            $instructions,
-            ''
-        );
-
-        if (!$planResponse) {
+        if (!$plan) {
             $this->error('Plan generation failed.');
             return self::FAILURE;
         }
 
-        $this->info('Generating core...');
+        $core = $this->generateCore($context, $toolCss, $plan);
 
-        $coreResponse = $this->askGPT(
-            $promptCore,
-            $promptCoreSystem,
-            $context,
-            $instructions,
-            $toolCss,
-            $planResponse
-        );
-
-        if (!$coreResponse) {
-            $this->error('Core response is not valid.');
+        if (!$core) {
+            $this->error('Core generation failed.');
             return self::FAILURE;
         }
 
-        file_put_contents($toolPath . '/core.blade.php', $coreResponse);
+        $reviewedCore = $this->reviewCore($context, $toolCss, $plan, $core);
 
-        $this->info('Generating SEO...');
-
-        $seoResponse = $this->askGPT(
-            $promptSeo,
-            $promptSeoSystem,
-            $context,
-            $instructions,
-            $seoCss
-        );
-
-        if (!$seoResponse) {
-            $this->error('Seo response is not valid.');
+        if (!$reviewedCore) {
+            $this->error('Core review failed.');
             return self::FAILURE;
         }
 
-        file_put_contents($toolPath . '/seo.blade.php', $seoResponse);
+        file_put_contents($toolPath . '/core.blade.php', $reviewedCore);
+
+        $seo = $this->generateSeo($context, $seoCss);
+
+        if (!$seo) {
+            $this->error('SEO generation failed.');
+            return self::FAILURE;
+        }
+
+        file_put_contents($toolPath . '/seo.blade.php', $seo);
 
         $this->info('Done ✅');
 
         return self::SUCCESS;
     }
 
+    private function loadPrompts(): void
+    {
+        $this->prompts = [
+            'plan' => [
+                'prompt' => file_get_contents(resource_path('prompts/prompt_core_plan.txt')),
+                'system' => file_get_contents(resource_path('prompts/prompt_core_plan_system.txt')),
+                'temperature' => 0.4,
+            ],
+            'core' => [
+                'prompt' => file_get_contents(resource_path('prompts/prompt_core.txt')),
+                'system' => file_get_contents(resource_path('prompts/prompt_core_system.txt')),
+                'temperature' => 0.15,
+            ],
+            'core_review' => [
+                'prompt' => file_get_contents(resource_path('prompts/prompt_core_review.txt')),
+                'system' => file_get_contents(resource_path('prompts/prompt_core_review_system.txt')),
+                'temperature' => 0.0,
+            ],
+            'seo' => [
+                'prompt' => file_get_contents(resource_path('prompts/prompt_seo.txt')),
+                'system' => file_get_contents(resource_path('prompts/prompt_seo_system.txt')),
+                'temperature' => 0.4,
+            ],
+        ];
+
+        $this->instructions = file_get_contents(resource_path('prompts/instructions.txt'));
+    }
+
     /**
      * @throws ConnectionException
      */
-    private function askGPT(
-        string $prompt,
-        string $system,
+    private function generatePlan(string $context): ?string
+    {
+        $this->info('Generating plan...');
+
+        return $this->callAgent(
+            agent: 'plan',
+            sections: [
+                'TOOL DATA' => $context,
+            ]
+        );
+    }
+
+    /**
+     * @throws ConnectionException
+     */
+    private function generateCore(
         string $context,
-        string $instructions,
         string $css,
-        ?string $plan = null
+        string $plan
     ): ?string {
-        $planBlock = $plan ? "\n=== IMPLEMENTATION PLAN ===\n$plan\n" : '';
+        $this->info('Generating core...');
 
-        $fullPrompt = <<<PROMPT
-{$prompt}
+        return $this->callAgent(
+            agent: 'core',
+            sections: [
+                'TOOL DATA' => $context,
+                'IMPLEMENTATION PLAN' => $plan,
+                'CSS STYLES DATA' => $this->compressCss($css),
+            ]
+        );
+    }
 
-=== TOOL DATA ===
-{$context}
-{$planBlock}
-=== CSS STYLES DATA ===
-{$this->compressCss($css)}
-PROMPT;
+    /**
+     * @throws ConnectionException
+     */
+    private function reviewCore(
+        string $context,
+        string $css,
+        string $plan,
+        string $core
+    ): ?string {
+        $this->info('Reviewing core...');
+
+        return $this->callAgent(
+            agent: 'core_review',
+            sections: [
+                'TOOL DATA' => $context,
+                'IMPLEMENTATION PLAN' => $plan,
+                'GENERATED CORE' => $core,
+                'CSS STYLES DATA' => $this->compressCss($css),
+            ],
+        );
+    }
+
+    /**
+     * @throws ConnectionException
+     */
+    private function generateSeo(
+        string $context,
+        string $css
+    ): ?string {
+        $this->info('Generating SEO...');
+
+        return $this->callAgent(
+            agent: 'seo',
+            sections: [
+                'TOOL DATA' => $context,
+                'CSS STYLES DATA' => $this->compressCss($css),
+            ]
+        );
+    }
+
+    /**
+     * @throws ConnectionException
+     */
+    private function callAgent(
+        string $agent,
+        array $sections,
+    ): ?string {
+        $promptData = $this->prompts[$agent];
+
+        $content = $promptData['prompt'] . "\n\n";
+
+        foreach ($sections as $title => $body) {
+            $content .= "=== {$title} ===\n{$body}\n\n";
+        }
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
             'Content-Type' => 'application/json',
         ])->post('https://api.openai.com/v1/chat/completions', [
-            'model' => 'gpt-5.4-mini',
+            'model' => 'gpt-5.4',
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => $system,
+                    'content' => $promptData['system'],
                 ],
                 [
                     'role' => 'system',
-                    'content' => $instructions,
+                    'content' => $this->instructions,
                 ],
                 [
                     'role' => 'user',
-                    'content' => $fullPrompt,
+                    'content' => trim($content),
                 ],
             ],
             'max_completion_tokens' => 12000,
-            'temperature' => 0.2,
+            'temperature' => $promptData['temperature'],
             'top_p' => 1.0,
         ]);
 
         if (!$response->ok()) {
+            $this->error($response->body());
             return null;
         }
 
-        return $this->cleanResponse($response->json('choices.0.message.content'));
+        return $this->cleanResponse(
+            $response->json('choices.0.message.content')
+        );
     }
 
     private function compressCss(string $css): string

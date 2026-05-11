@@ -1,200 +1,203 @@
 <section class="tool-section">
   <div class="tool-card">
     <form class="tool-form" id="jsonFormatterForm">
-      <label for="jsonInput">JSON Input</label>
-      <textarea id="jsonInput" name="jsonInput" rows="12" placeholder="Paste or type JSON here"></textarea>
+      <label for="jsonInput">
+        <span>JSON Input</span>
+        <textarea id="jsonInput" rows="12" placeholder='Paste or type JSON here, for example: {"name":"John","age":30}' aria-describedby="jsonStatus jsonError"></textarea>
+      </label>
 
-      <div class="tool-form" style="gap:0.75rem;">
-        <label for="indentSize">Indentation Size</label>
-        <select id="indentSize" name="indentSize">
-          <option value="2" selected>2 spaces</option>
-          <option value="4">4 spaces</option>
-          <option value="tab">Tabs</option>
-        </select>
-
-        <label class="checkbox-label" for="autoFormat">
-          <input type="checkbox" id="autoFormat" class="checkbox-input" />
-          <span class="checkbox-box"></span>
-          <span>Auto-format on paste/input</span>
+      <div class="json-toolbar">
+        <label for="indentSize">
+          <span>Indentation Size</span>
+          <select id="indentSize">
+            <option value="2" selected>2 spaces</option>
+            <option value="4">4 spaces</option>
+          </select>
         </label>
 
-        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.75rem;">
+        <div class="json-actions">
           <button type="submit" id="formatBtn">Format JSON</button>
-          <button type="button" id="clearBtn">Clear</button>
+          <button type="button" id="minifyBtn" class="secondary-btn">Minify JSON</button>
+          <button type="button" id="copyBtn" class="secondary-btn" disabled>Copy Result</button>
+          <button type="button" id="clearBtn" class="secondary-btn">Clear</button>
         </div>
       </div>
     </form>
 
-    <div class="tool-result" id="statusMessage" aria-live="polite" style="margin-top:1rem;"></div>
-
-    <div class="tool-form" style="margin-top:1rem;">
-      <label for="jsonOutput">Formatted Output</label>
-      <textarea id="jsonOutput" name="jsonOutput" rows="12" readonly placeholder="Formatted JSON will appear here"></textarea>
-
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.75rem;">
-        <button type="button" id="copyBtn" disabled>Copy Formatted Output</button>
-        <button type="button" id="selectBtn">Select Output</button>
-      </div>
+    <div class="tool-result json-status-wrap" aria-live="polite">
+      <div id="jsonStatus" class="json-status"></div>
+      <div id="jsonError" class="json-error"></div>
     </div>
 
-    <div class="tool-result" id="summaryBox" style="margin-top:1rem;"></div>
+    <div class="json-counts" id="jsonCounts">
+      <div><strong>Input:</strong> <span id="inputChars">0</span> chars, <span id="inputLines">0</span> lines</div>
+      <div><strong>Output:</strong> <span id="outputChars">0</span> chars, <span id="outputLines">0</span> lines</div>
+    </div>
+
+    <div class="tool-form">
+      <label for="jsonOutput">
+        <span>Result</span>
+        <textarea id="jsonOutput" rows="12" readonly placeholder="Formatted or minified JSON will appear here"></textarea>
+      </label>
+    </div>
   </div>
+
+  <style>
+    .tool-section .json-toolbar{display:grid;grid-template-columns:minmax(180px,220px) 1fr;gap:1rem;align-items:end}
+    .tool-section .json-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem}
+    .tool-section .secondary-btn{background-color:var(--input-bg);color:var(--text-color);border:1px solid var(--input-border)}
+    .tool-section .secondary-btn:hover{background-color:var(--card-bg)}
+    .tool-section button:disabled{opacity:.6;cursor:not-allowed}
+    .tool-section .json-status-wrap{text-align:left;margin-top:1rem}
+    .tool-section .json-status{font-weight:600}
+    .tool-section .json-status.valid{color:#1f9d55}
+    .tool-section .json-status.invalid{color:#d64545}
+    .tool-section .json-error{margin-top:0.35rem;color:#d64545;word-break:break-word}
+    .tool-section .json-counts{display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;margin:1rem 0;font-size:.95rem}
+    .tool-section #jsonInput.invalid-input{border-color:#d64545}
+    .tool-section #jsonOutput{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .tool-section #jsonInput{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    @media (max-width:700px){
+      .tool-section .json-toolbar{grid-template-columns:1fr}
+      .tool-section .json-actions{grid-template-columns:repeat(2,1fr)}
+      .tool-section .json-counts{grid-template-columns:1fr}
+    }
+  </style>
 
   <script>
     (function () {
-      const form = document.getElementById('jsonFormatterForm');
-      const input = document.getElementById('jsonInput');
-      const output = document.getElementById('jsonOutput');
-      const indentSize = document.getElementById('indentSize');
-      const autoFormat = document.getElementById('autoFormat');
-      const statusMessage = document.getElementById('statusMessage');
-      const summaryBox = document.getElementById('summaryBox');
-      const copyBtn = document.getElementById('copyBtn');
-      const clearBtn = document.getElementById('clearBtn');
-      const selectBtn = document.getElementById('selectBtn');
+      var form = document.getElementById('jsonFormatterForm');
+      var jsonInput = document.getElementById('jsonInput');
+      var indentSize = document.getElementById('indentSize');
+      var jsonOutput = document.getElementById('jsonOutput');
+      var minifyBtn = document.getElementById('minifyBtn');
+      var copyBtn = document.getElementById('copyBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var jsonStatus = document.getElementById('jsonStatus');
+      var jsonError = document.getElementById('jsonError');
+      var inputChars = document.getElementById('inputChars');
+      var inputLines = document.getElementById('inputLines');
+      var outputChars = document.getElementById('outputChars');
+      var outputLines = document.getElementById('outputLines');
 
-      let debounceTimer = null;
-      let lastValidOutput = '';
-
-      function setStatus(message, type) {
-        statusMessage.textContent = message;
-        statusMessage.style.color = type === 'error' ? '#b42318' : type === 'success' ? '#067647' : '';
+      function countLines(text) {
+        if (!text) return 0;
+        return text.split(/\r\n|\r|\n/).length;
       }
 
-      function setSummary(value) {
-        if (value === null || value === undefined) {
-          summaryBox.textContent = '';
-          return;
-        }
+      function updateCounts() {
+        var inputText = jsonInput.value || '';
+        var outputText = jsonOutput.value || '';
+        inputChars.textContent = inputText.length;
+        inputLines.textContent = countLines(inputText);
+        outputChars.textContent = outputText.length;
+        outputLines.textContent = countLines(outputText);
+      }
 
-        const type = Array.isArray(value) ? 'array' : typeof value;
-        let summary = `Top-level type: ${type}`;
+      function setStatus(type, message, errorMessage) {
+        jsonStatus.className = 'json-status' + (type ? ' ' + type : '');
+        jsonStatus.textContent = message || '';
+        jsonError.textContent = errorMessage || '';
+      }
 
-        if (Array.isArray(value)) {
-          summary += ` · Items: ${value.length}`;
-        } else if (value && typeof value === 'object') {
-          summary += ` · Keys: ${Object.keys(value).length}`;
-        }
+      function clearErrorState() {
+        jsonInput.classList.remove('invalid-input');
+      }
 
-        const formattedLength = lastValidOutput ? lastValidOutput.length : 0;
-        summary += ` · Characters: ${formattedLength}`;
+      function setInvalid(message, errorMessage) {
+        jsonInput.classList.add('invalid-input');
+        setStatus('invalid', message, errorMessage);
+      }
 
-        summaryBox.textContent = summary;
+      function setValid(message) {
+        clearErrorState();
+        setStatus('valid', message, '');
       }
 
       function getIndent() {
-        const value = indentSize.value;
-        return value === 'tab' ? '\t' : Number(value) || 2;
+        var value = parseInt(indentSize.value, 10);
+        return isFinite(value) && value > 0 ? value : 2;
       }
 
-      function parseAndFormat() {
-        const raw = input.value;
-        if (!raw || !raw.trim()) {
-          output.value = '';
-          lastValidOutput = '';
+      function processJson(mode) {
+        var raw = jsonInput.value;
+
+        if (!raw || raw.trim() === '') {
+          jsonOutput.value = '';
+          setInvalid('Invalid JSON', 'Please enter JSON to format or minify.');
           copyBtn.disabled = true;
-          setStatus('Enter JSON to format.', '');
-          setSummary(null);
-          return false;
-        }
-
-        try {
-          const parsed = JSON.parse(raw);
-          const formatted = JSON.stringify(parsed, null, getIndent());
-          output.value = formatted;
-          lastValidOutput = formatted;
-          copyBtn.disabled = false;
-          setStatus('JSON is valid and formatted successfully.', 'success');
-          setSummary(parsed);
-          return true;
-        } catch (error) {
-          output.value = '';
-          lastValidOutput = '';
-          copyBtn.disabled = true;
-          setSummary(null);
-          const message = error && error.message ? error.message : 'Invalid JSON.';
-          setStatus(`Invalid JSON: ${message}. Check for missing quotes, trailing commas, or mismatched brackets.`, 'error');
-          return false;
-        }
-      }
-
-      function scheduleAutoFormat() {
-        if (!autoFormat.checked) return;
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          parseAndFormat();
-        }, 350);
-      }
-
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        parseAndFormat();
-      });
-
-      input.addEventListener('input', scheduleAutoFormat);
-      input.addEventListener('paste', function () {
-        scheduleAutoFormat();
-      });
-
-      indentSize.addEventListener('change', function () {
-        if (autoFormat.checked && input.value.trim()) {
-          parseAndFormat();
-        }
-      });
-
-      autoFormat.addEventListener('change', function () {
-        if (autoFormat.checked && input.value.trim()) {
-          parseAndFormat();
-        }
-      });
-
-      copyBtn.addEventListener('click', async function () {
-        if (!lastValidOutput) {
-          setStatus('No formatted JSON available to copy.', 'error');
+          updateCounts();
           return;
         }
 
         try {
-          await navigator.clipboard.writeText(lastValidOutput);
-          setStatus('Copied to clipboard.', 'success');
+          var parsed = JSON.parse(raw);
+          var result = mode === 'minify' ? JSON.stringify(parsed) : JSON.stringify(parsed, null, getIndent());
+          jsonOutput.value = result;
+          setValid('Valid JSON');
+          copyBtn.disabled = false;
         } catch (error) {
-          try {
-            output.focus();
-            output.select();
-            const successful = document.execCommand('copy');
-            if (successful) {
-              setStatus('Copied to clipboard.', 'success');
-            } else {
-              setStatus('Copy failed. Please copy the formatted JSON manually.', 'error');
-            }
-          } catch (fallbackError) {
-            setStatus('Copy failed. Please copy the formatted JSON manually.', 'error');
+          jsonOutput.value = '';
+          setInvalid('Invalid JSON', error && error.message ? error.message : 'Unable to parse JSON.');
+          copyBtn.disabled = true;
+        }
+
+        updateCounts();
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        processJson('format');
+      });
+
+      minifyBtn.addEventListener('click', function () {
+        processJson('minify');
+      });
+
+      copyBtn.addEventListener('click', async function () {
+        var text = jsonOutput.value;
+        if (!text) {
+          setStatus('invalid', 'No result available', 'Format or minify JSON before copying.');
+          copyBtn.disabled = true;
+          return;
+        }
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            jsonOutput.focus();
+            jsonOutput.select();
+            document.execCommand('copy');
           }
+          setStatus('valid', 'Result copied', '');
+        } catch (error) {
+          setStatus('invalid', 'Copy failed', 'Your browser could not copy the result automatically.');
         }
       });
 
       clearBtn.addEventListener('click', function () {
-        input.value = '';
-        output.value = '';
-        lastValidOutput = '';
+        jsonInput.value = '';
+        jsonOutput.value = '';
+        indentSize.value = '2';
+        clearErrorState();
+        setStatus('', '', '');
         copyBtn.disabled = true;
-        statusMessage.textContent = '';
-        summaryBox.textContent = '';
-        input.focus();
+        updateCounts();
+        jsonInput.focus();
       });
 
-      selectBtn.addEventListener('click', function () {
-        if (!output.value) {
-          setStatus('No formatted JSON available to select.', 'error');
-          return;
+      jsonInput.addEventListener('input', function () {
+        clearErrorState();
+        if (!jsonInput.value.trim()) {
+          jsonOutput.value = '';
+          copyBtn.disabled = true;
+          setStatus('', '', '');
         }
-        output.focus();
-        output.select();
-        setStatus('Formatted JSON selected.', 'success');
+        updateCounts();
       });
 
-      copyBtn.disabled = true;
-      setStatus('Enter JSON to format.', '');
+      updateCounts();
     })();
   </script>
 </section>
