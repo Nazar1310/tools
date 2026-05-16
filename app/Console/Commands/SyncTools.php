@@ -9,7 +9,8 @@ use App\Models\Tool;
 class SyncTools extends Command
 {
     protected $signature = 'tools:sync {--dry-run}';
-    protected $description = 'Sync categories and tools from files to database';
+
+    protected $description = 'Sync categories and tools from filesystem to database';
 
     protected string $basePath;
 
@@ -26,21 +27,26 @@ class SyncTools extends Command
 
         $this->info('Found ' . count($categoryDirs) . ' categories');
 
+        $syncedCategorySlugs = [];
+        $syncedToolIds = [];
+
         foreach ($categoryDirs as $categoryDir) {
             $categorySlug = basename($categoryDir);
             $categoryFile = $categoryDir . '/index.php';
 
             if (!file_exists($categoryFile)) {
-                $this->warn("Skipped category $categorySlug (no index.php)");
+                $this->warn("Skipped category {$categorySlug} (missing index.php)");
                 continue;
             }
 
             $categoryData = require $categoryFile;
 
             if (!is_array($categoryData)) {
-                $this->warn("Invalid category format: $categorySlug");
+                $this->warn("Skipped category {$categorySlug} (invalid index.php)");
                 continue;
             }
+
+            $syncedCategorySlugs[] = $categorySlug;
 
             $categoryPayload = [
                 'slug' => $categorySlug,
@@ -52,27 +58,40 @@ class SyncTools extends Command
             ];
 
             if ($this->option('dry-run')) {
-                $this->line("DRY category: $categorySlug");
-                $category = null;
+                $this->line("DRY category: {$categorySlug}");
+                $category = Category::query()
+                    ->where('slug', $categorySlug)
+                    ->first();
             } else {
                 $category = Category::query()->updateOrCreate(
                     ['slug' => $categorySlug],
                     $categoryPayload
                 );
 
-                $this->info("Synced category: $categorySlug");
+                $this->info("Synced category: {$categorySlug}");
             }
 
-            // --- TOOLS ---
-            $toolFiles = glob($categoryDir . '/*/index.php');
+            $toolDirs = glob($categoryDir . '/*', GLOB_ONLYDIR);
 
-            foreach ($toolFiles as $toolFile) {
-                $toolSlug = basename(dirname($toolFile));
+            foreach ($toolDirs as $toolDir) {
+                $toolSlug = basename($toolDir);
 
-                $toolData = require $toolFile;
+                if (!$this->isValidToolDirectory($toolDir)) {
+                    $this->warn("   Invalid tool: /{$categorySlug}/{$toolSlug}");
+
+                    if (!$this->option('dry-run')) {
+                        Tool::query()
+                            ->where('slug', $toolSlug)
+                            ->delete();
+                    }
+
+                    continue;
+                }
+
+                $toolData = require $toolDir . '/index.php';
 
                 if (!is_array($toolData)) {
-                    $this->warn("Invalid tool: $toolSlug");
+                    $this->warn("Invalid tool config: {$toolSlug}");
                     continue;
                 }
 
@@ -91,21 +110,54 @@ class SyncTools extends Command
                 ];
 
                 if ($this->option('dry-run')) {
-                    $this->line("  DRY tool: $toolSlug");
+                    $this->line("   DRY tool: {$toolSlug}");
                     continue;
                 }
 
-                Tool::query()->updateOrCreate(
+                $tool = Tool::query()->updateOrCreate(
                     ['slug' => $toolSlug],
                     $toolPayload
                 );
 
-                $this->line("  Synced tool: /$categorySlug/$toolSlug");
+                $syncedToolIds[] = $tool->id;
+
+                $this->line("   Synced tool: /{$categorySlug}/{$toolSlug}");
+            }
+        }
+
+        if (!$this->option('dry-run')) {
+            $deletedTools = Tool::query()
+                ->when(
+                    !empty($syncedToolIds),
+                    fn($q) => $q->whereNotIn('id', $syncedToolIds)
+                )
+                ->delete();
+
+            if ($deletedTools > 0) {
+                $this->warn("Deleted orphan tools: {$deletedTools}");
+            }
+
+            $deletedCategories = Category::query()
+                ->when(
+                    !empty($syncedCategorySlugs),
+                    fn($q) => $q->whereNotIn('slug', $syncedCategorySlugs)
+                )
+                ->delete();
+
+            if ($deletedCategories > 0) {
+                $this->warn("Deleted orphan categories: {$deletedCategories}");
             }
         }
 
         $this->info('Done ✅');
 
         return self::SUCCESS;
+    }
+
+    private function isValidToolDirectory(string $toolDir): bool
+    {
+        return file_exists($toolDir . '/index.php')
+            && file_exists($toolDir . '/core.blade.php')
+            && file_exists($toolDir . '/seo.blade.php');
     }
 }

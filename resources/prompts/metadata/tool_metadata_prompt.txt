@@ -1,0 +1,72 @@
+TASK:
+Generate production-ready Laravel tool metadata.
+
+GOAL:
+Create high-quality metadata for a web utility tool page.
+
+CONTEXT:
+The generated output will be saved directly into a production Laravel index.php config file.
+
+TOOL INPUT:
+Tool name: {{tool_name}}
+Category slug: {{category_slug}}
+
+REQUIREMENTS:
+
+Generate:
+- tool_slug
+- name
+- title
+- desc
+- seo_title
+- seo_desc
+
+FIELD REQUIREMENTS:
+
+tool_slug:
+- kebab-case
+- lowercase
+- URL-safe
+- must accurately represent the tool
+
+name:
+- clean user-facing tool name
+
+title:
+- user-facing page title
+- may match name when appropriate
+
+desc:
+- concise tool description
+- explain what the tool does
+- clear and user-friendly
+
+seo_title:
+- optimized for search engines
+- optimized for CTR
+- natural wording
+- no spammy phrasing
+
+seo_desc:
+- optimized for search snippets
+- clearly communicate tool usefulness
+- concise and compelling
+
+CONSISTENCY RULES:
+- all fields must describe the same tool
+- wording must stay consistent
+- no conflicting interpretations
+
+EXAMPLES OF QUALITY:
+
+Good:
+JSON Formatter
+json-formatter
+Format, validate, and beautify JSON instantly.
+
+Bad:
+Amazing Ultimate JSON Tool For Developers
+best-json-super-tool-online-free
+
+CRITICAL:
+Return ONLY valid JSON.

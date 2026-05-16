@@ -78,23 +78,23 @@ class GenerateToolViews extends Command
     {
         $this->prompts = [
             'plan' => [
-                'prompt' => file_get_contents(resource_path('prompts/prompt_core_plan.txt')),
-                'system' => file_get_contents(resource_path('prompts/prompt_core_plan_system.txt')),
+                'prompt' => file_get_contents(resource_path('prompts/plan/prompt_core_plan.txt')),
+                'system' => file_get_contents(resource_path('prompts/plan/prompt_core_plan_system.txt')),
                 'temperature' => 0.4,
             ],
             'core' => [
-                'prompt' => file_get_contents(resource_path('prompts/prompt_core.txt')),
-                'system' => file_get_contents(resource_path('prompts/prompt_core_system.txt')),
+                'prompt' => file_get_contents(resource_path('prompts/develop/prompt_core.txt')),
+                'system' => file_get_contents(resource_path('prompts/develop/prompt_core_system.txt')),
                 'temperature' => 0.15,
             ],
             'core_review' => [
-                'prompt' => file_get_contents(resource_path('prompts/prompt_core_review.txt')),
-                'system' => file_get_contents(resource_path('prompts/prompt_core_review_system.txt')),
+                'prompt' => file_get_contents(resource_path('prompts/review/prompt_core_review.txt')),
+                'system' => file_get_contents(resource_path('prompts/review/prompt_core_review_system.txt')),
                 'temperature' => 0.0,
             ],
             'seo' => [
-                'prompt' => file_get_contents(resource_path('prompts/prompt_seo.txt')),
-                'system' => file_get_contents(resource_path('prompts/prompt_seo_system.txt')),
+                'prompt' => file_get_contents(resource_path('prompts/seo/prompt_seo.txt')),
+                'system' => file_get_contents(resource_path('prompts/seo/prompt_seo_system.txt')),
                 'temperature' => 0.4,
             ],
         ];
@@ -192,7 +192,9 @@ class GenerateToolViews extends Command
             $content .= "=== {$title} ===\n{$body}\n\n";
         }
 
-        $response = Http::withHeaders([
+        $response = Http::timeout(180)
+            ->connectTimeout(15)
+            ->withHeaders([
             'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
             'Content-Type' => 'application/json',
         ])->post('https://api.openai.com/v1/chat/completions', [
