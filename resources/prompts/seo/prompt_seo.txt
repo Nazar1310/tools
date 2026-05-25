@@ -1,90 +1,185 @@
 TASK:
-Generate structured SEO content for a tool page based on the provided TOOL DATA.
+Generate production-ready SEO HTML content for a tool page based on the provided TOOL DATA.
 
 GOAL:
-Create clear, useful, and well-structured content that improves search visibility and helps users understand and use the tool.
+Create high-quality SEO content that improves search visibility, satisfies user intent, supports tool usage, and provides real informational value.
+
+INPUT DATA:
+You will receive TOOL DATA containing:
+
+- name
+- title
+- description
+- SEO fields (context only)
 
 IMPORTANT:
 
-- The page already contains an H1 — DO NOT generate any <h1>
-- Do NOT repeat the title as a heading
-- Do NOT include UI or interactive elements
+- The page already contains an H1
+- DO NOT generate any <h1>
+- DO NOT repeat the page title as a heading
 - Focus ONLY on SEO content
+- Do NOT generate UI components or interactive functionality
+- Output must be production-ready HTML
 
-STRUCTURE REQUIREMENTS:
+CONTENT STRATEGY REQUIREMENTS:
 
-- Wrap ALL SEO content inside:
-  <section class="seo-section">
+Before generating content:
 
-- Inside this section:
-  - Use semantic HTML (h2, h3, p, ul, ol)
-  - Organize content into logical sections
-  - Ensure clean and readable structure
+1. Identify likely search intent
+2. Determine tool category
+3. Match content structure to actual user needs
+4. Avoid generic templated SEO content
 
-CONTENT REQUIREMENTS:
+The result should feel tailored to the tool, not mechanically generated.
 
-Include the following sections (adapt if necessary based on the tool):
+HTML STRUCTURE REQUIREMENTS:
+
+Wrap all primary SEO content inside:
+
+<section class="seo-section">
+
+Use semantic HTML only:
+
+- h2
+- h3
+- p
+- ul
+- ol
+- strong
+- em
+- table
+- tbody
+- tr
+- td
+- thead
+- th
+
+If FAQ is included, wrap it separately:
+
+<section class="faq-section">
+
+SECTION REQUIREMENTS:
+
+Choose only sections that provide real value.
+
+Possible sections:
 
 1. Introduction
-- Explain what the tool does
-- Keep it concise and clear
+Purpose:
+- explain what the tool does
+- clarify user benefit
+- satisfy quick informational intent
 
-2. How to Use
-- Step-by-step instructions
-- Easy to follow
+2. How It Works
+Include when useful:
+- formulas
+- logic
+- transformations
+- methodology
+- assumptions
 
-3. Explanation / Logic
-- Explain how the tool works (if applicable)
-- Include formulas or logic if relevant
+3. How to Use
+Include when useful:
+- practical usage steps
+- concise guidance
+- only if not duplicating obvious UI
 
 4. Example
-- Provide a simple, realistic example
+Include when useful:
+- realistic practical example
+- result interpretation
 
-5. Interpretation of Results
-- Help users understand what the output means
+5. Understanding Results
+Include when useful:
+- explain outputs
+- interpretation guidance
+- confidence/limitations
 
-6. Tips / Common Mistakes (optional but recommended)
-- Practical advice
-- Real-world usefulness
+6. Common Mistakes
+Include when useful:
+- input errors
+- interpretation mistakes
+- assumption misunderstandings
 
-FAQ REQUIREMENTS (MANDATORY):
+7. Limitations / Constraints
+Include when useful:
+- precision limitations
+- unsupported cases
+- methodological boundaries
 
-- Generate a separate FAQ block
+8. Practical Use Cases
+Include when useful:
+- realistic applications
+- problem-solving context
 
-- Wrap FAQ inside:
-  <section class="faq-section">
+FAQ RULES:
 
-- Include multiple meaningful questions and answers
-- Each question must be relevant to the tool
-- Answers must be clear and helpful
+FAQ is NOT mandatory.
 
-- Structure:
-  - question as <h3>
-  - answer as <p>
+Include FAQ ONLY when it provides genuine value for:
 
-WRITING STYLE:
+- search intent coverage
+- user objections
+- interpretation questions
+- common search queries
+- edge-case clarification
 
-- Clear and concise
-- Human and natural tone
-- No fluff or filler
-- Avoid repetition
-- Focus on usefulness
+FAQ structure:
 
-SEO PRINCIPLES:
+<section class="faq-section">
+  <h2>FAQ</h2>
+  <h3>Question</h3>
+  <p>Answer</p>
+</section>
 
-- Use headings properly (h2, h3)
-- Ensure content is easy to scan
-- Use natural keyword placement (no keyword stuffing)
-- Keep paragraphs readable
+WRITING RULES:
 
-CRITICAL:
+Use:
 
-- Do NOT include JavaScript
-- Do NOT include CSS unless absolutely necessary
-- Do NOT include any explanations outside of HTML
-- Output must be production-ready
+- concise paragraphs
+- clear structure
+- direct explanations
+- natural language
+- semantic relevance
+- scan-friendly formatting
+
+Avoid:
+
+- keyword stuffing
+- generic filler
+- repetitive statements
+- exaggerated claims
+- robotic AI phrasing
+
+STRICTLY AVOID phrases like:
+
+- easy-to-use
+- powerful tool
+- quickly and easily
+- designed to help
+- simple solution
+- seamless experience
+- user-friendly platform
+- save time and effort
+
+SEO EXPECTATIONS:
+
+Naturally support:
+
+- primary search intent
+- semantic keyword relevance
+- related query coverage
+- long-tail discoverability
+- featured snippet potential
+- People Also Ask alignment
+
+QUALITY BAR:
+
+The content must feel like it was created by an experienced SEO strategist for a real production website.
+
+It must NOT feel like generic AI-generated filler.
 
 OUTPUT:
 
-Return ONLY HTML.
+Return ONLY valid HTML.
 No explanations.
