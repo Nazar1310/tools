@@ -131,7 +131,7 @@ class GenerateToolIndexViews extends Command
             'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
             'Content-Type' => 'application/json',
         ])->post('https://api.openai.com/v1/chat/completions', [
-            'model' => 'gpt-5.4',
+            'model' => 'gpt-5.4-mini',
             'messages' => [
                 [
                     'role' => 'system',
