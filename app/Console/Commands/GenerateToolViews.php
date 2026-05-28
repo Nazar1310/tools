@@ -87,19 +87,19 @@ class GenerateToolViews extends Command
                 'prompt' => file_get_contents(resource_path('prompts/develop/prompt_core.txt')),
                 'system' => file_get_contents(resource_path('prompts/develop/prompt_core_system.txt')),
                 'temperature' => 0.1,
-                'model' => 'gpt-5.4-mini',
+                'model' => 'deepseek-chat',
             ],
             'core_review' => [
                 'prompt' => file_get_contents(resource_path('prompts/review/prompt_core_review.txt')),
                 'system' => file_get_contents(resource_path('prompts/review/prompt_core_review_system.txt')),
                 'temperature' => 0.0,
-                'model' => 'gpt-5.4-mini',
+                'model' => 'deepseek-chat',
             ],
             'seo' => [
                 'prompt' => file_get_contents(resource_path('prompts/seo/prompt_seo.txt')),
                 'system' => file_get_contents(resource_path('prompts/seo/prompt_seo_system.txt')),
                 'temperature' => 0.2,
-                'model' => 'gpt-5.4-mini',
+                'model' => 'deepseek-chat',
             ],
         ];
 
@@ -196,12 +196,12 @@ class GenerateToolViews extends Command
             $content .= "=== {$title} ===\n{$body}\n\n";
         }
 
-        $response = Http::timeout(180)
-            ->connectTimeout(15)
-            ->withHeaders([
-            'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+        $isDeapSeek = str_contains($promptData['model'], 'deepseek');
+        $headers = [
             'Content-Type' => 'application/json',
-        ])->post('https://api.openai.com/v1/chat/completions', [
+        ];
+        $url = $isDeapSeek ? 'https://api.deepseek.com/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+        $data = [
             'model' => $promptData['model'],
             'messages' => [
                 [
@@ -217,10 +217,22 @@ class GenerateToolViews extends Command
                     'content' => trim($content),
                 ],
             ],
-            'max_completion_tokens' => 12000,
             'temperature' => $promptData['temperature'],
-            'top_p' => 1.0,
-        ]);
+        ];
+
+        if ($isDeapSeek) {
+            $data['max_tokens'] = 12000;
+            $headers['Authorization'] = 'Bearer ' . env('DEEPSEEK_API_KEY');
+        } else {
+            $data['max_completion_tokens'] = 12000;
+            $data['top_p'] = 1.0;
+            $headers['Authorization'] = 'Bearer ' . env('OPENAI_API_KEY');
+        }
+
+        $response = Http::timeout(180)
+            ->connectTimeout(15)
+            ->withHeaders($headers)
+            ->post($url, $data);
 
         if (!$response->ok()) {
             $this->error($response->body());
